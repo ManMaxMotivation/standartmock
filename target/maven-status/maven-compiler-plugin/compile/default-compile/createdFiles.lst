@@ -1,0 +1,17 @@
+com\bankapp\model\Client.class
+com\bankapp\util\SessionManager.class
+observability\MyHandler.class
+com\bankapp\controller\AccountController.class
+com\bankapp\controller\TransactionController.class
+com\bankapp\controller\TimeoutController.class
+com\bankapp\util\TestDataInitializer.class
+com\bankapp\service\CustomMetricsService.class
+com\bankapp\repository\ClientRepository.class
+com\bankapp\controller\HelloController.class
+com\bankapp\service\ClientService.class
+com\bankapp\standartmock\MyMock.class
+com\bankapp\service\AccountService.class
+com\bankapp\model\Account.class
+com\bankapp\repository\AccountRepository.class
+com\bankapp\swagger\OpenAPIConfig.class
+observability\ActuatorHttpExchangesConfiguration.class
