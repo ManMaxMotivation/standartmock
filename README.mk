@@ -26,3 +26,4 @@
    ```bash
    git clone https://github.com//ManMaxMotivation/standartmock
    cd stub-service
+   ```
