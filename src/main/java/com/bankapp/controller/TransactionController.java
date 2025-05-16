@@ -3,6 +3,7 @@ package com.bankapp.controller;
 import com.bankapp.model.Account;
 import com.bankapp.model.Client;
 import com.bankapp.repository.ClientRepository;
+import com.bankapp.repository.AccountRepository; // Добавлен импорт
 import com.bankapp.service.CustomMetricsService;
 import com.bankapp.controller.TimeoutController;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -31,16 +32,21 @@ public class TransactionController {
     private final CustomMetricsService metricsService;
     private final TimeoutController timeoutController;
     private final MeterRegistry meterRegistry;
+    private final ClientRepository clientRepository;
+    private final AccountRepository accountRepository; // Добавлено поле
 
     private Client recipientClient;
     private Account recipientAccount;
 
     @Autowired
     public TransactionController(CustomMetricsService metricsService, TimeoutController timeoutController,
-                                 MeterRegistry meterRegistry) {
+                                 MeterRegistry meterRegistry, ClientRepository clientRepository,
+                                 AccountRepository accountRepository) { // Добавлен параметр
         this.metricsService = metricsService;
         this.timeoutController = timeoutController;
         this.meterRegistry = meterRegistry;
+        this.clientRepository = clientRepository;
+        this.accountRepository = accountRepository; // Инициализация
     }
 
     private boolean isAuthenticated() {
@@ -58,7 +64,7 @@ public class TransactionController {
         try {
             String username = restTemplate.getForObject("http://localhost:8082/auth/user", String.class);
             logger.debug("getLoggedInClient username: {}", username);
-            return ClientRepository.findByUsername(username);
+            return clientRepository.findByUsername(username);
         } catch (Exception e) {
             logger.error("Error in getLoggedInClient: {}", e.getMessage());
             return Optional.empty();
@@ -78,7 +84,7 @@ public class TransactionController {
         try {
             metricsService.incrementGetClientsCounter();
             metricsService.recordGetClientsSummary(1);
-            List<Client> clients = List.copyOf(ClientRepository.getAllClients());
+            List<Client> clients = List.copyOf(clientRepository.findAll());
             metricsService.recordGetClientsTimer(System.nanoTime() - startTime);
             return clients;
         } finally {
@@ -121,7 +127,7 @@ public class TransactionController {
                 return "❌ Ошибка: Сначала войдите в систему!";
             }
 
-            Optional<Client> recipientOpt = ClientRepository.findByUsername(username);
+            Optional<Client> recipientOpt = clientRepository.findByUsername(username);
             if (recipientOpt.isEmpty()) {
                 logger.warn("selectRecipient: Recipient not found for username: {}", username);
                 meterRegistry.counter("transaction_select_recipient_failure_total").increment();
@@ -214,6 +220,10 @@ public class TransactionController {
 
             senderAccount.setBalance(senderAccount.getBalance() - amount);
             recipientAccount.setBalance(recipientAccount.getBalance() + amount);
+
+            // Сохраняем изменения в базе
+            accountRepository.save(senderAccount);
+            accountRepository.save(recipientAccount);
 
             logger.info("transfer: Completed for amount: {} to account: {}", amount, recipientAccount.getAccountNumber());
             metricsService.recordTransferTimer(System.nanoTime() - startTime);

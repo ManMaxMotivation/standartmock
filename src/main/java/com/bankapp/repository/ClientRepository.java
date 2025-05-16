@@ -1,27 +1,15 @@
 package com.bankapp.repository;
 
 import com.bankapp.model.Client;
-import java.util.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
-public class ClientRepository {
-    private static final Map<String, Client> clients = new HashMap<>();
+@Repository
+public interface ClientRepository extends JpaRepository<Client, Long> {
+    // Метод для поиска клиента по ID
+    Optional<Client> findById(Long id);
 
-    public static Client save(Client client) {
-        clients.put(client.getId(), client);
-        return client;
-    }
-
-    public static Optional<Client> findByUsername(String username) {
-        return clients.values().stream()
-                .filter(c -> c.getUsername().equals(username))
-                .findFirst();
-    }
-
-    public static Optional<Client> findById(String id) {
-        return Optional.ofNullable(clients.get(id));
-    }
-
-    public static Collection<Client> getAllClients() {
-        return clients.values();
-    }
+    // Мы можем оставить поиск по username, если необходимо
+    Optional<Client> findByUsername(String username);
 }
