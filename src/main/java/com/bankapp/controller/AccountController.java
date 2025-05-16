@@ -36,16 +36,11 @@ public class AccountController {
     @PostMapping("/create")
     @Operation(
             summary = "Создание нового счета",
-            description = "Создает новый банковский счет для клиента по предоставленному идентификатору клиента.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "ID клиента для создания счета",
-                    required = true
-            )
-    )
+            description = "Создает новый банковский счет для клиента по предоставленному идентификатору клиента.")
     public Account create(
             @RequestParam
             @Parameter(description = "Идентификатор клиента для создания счета", example = "12345", required = true)
-            String clientId
+            Long clientId
     ) {
         logger.info("Create account attempt for clientId: {}", clientId);
         timeoutController.applyTimeout("create_account");
@@ -53,7 +48,7 @@ public class AccountController {
 
         try {
             metricsService.incrementCreateAccountCounter();
-            metricsService.recordCreateAccountSummary(clientId.length());
+            metricsService.recordCreateAccountSummary(String.valueOf(clientId).length()); // Исправлено здесь
             Account account = accountService.createAccount(clientId);
             metricsService.recordCreateAccountTimer(System.nanoTime() - startTime);
             return account;
